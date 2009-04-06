@@ -37,20 +37,21 @@ class SourceText(models.Model):
 
     processor = models.ForeignKey(TextProcessor)
 
-    ct = models.ForeignKey(ContentType)
-    obj_id = models.PositiveIntegerField()
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
     field = models.CharField(max_length=64)
-    target = GenericForeignKey('ct', 'obj_id')
+    target = GenericForeignKey('content_type', 'object_id')
+
+    modification_time = models.DateTimeField(auto_now=True)
 
     content = models.TextField()
-    mtime = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return u"Source text for %s:%s" % (self.target, self.field)
 
     @property
     def target_field(self):
         return getattr(self.target, self.field)
-
-    def __unicode__(self):
-        return u"Source text for %s:%s" % (self.target, self.field)
 
     def render(self):
         return self.processor.convert(self.content)
