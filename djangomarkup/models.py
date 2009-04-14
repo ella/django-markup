@@ -1,7 +1,10 @@
+from processors import ProcessorError
 from django.contrib.contenttypes.generic import GenericForeignKey
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
+
+from djangomarkup.processors import ProcessorConfigurationError, ProcessorError
 
 class TextProcessor(models.Model):
     """
@@ -17,13 +20,25 @@ class TextProcessor(models.Model):
         return self.name
 
     def get_function(self):
+        """
+        Return function object for my function.
+        raise ProcessorConfigurationError when function could not be resolved.
+        """
         if not hasattr(self, '_function'):
-            mod = __import__('.'.join(self.function.split('.')[:-1]), {}, {}, [self.function.split('.')[-1]])
-            self._function = getattr(mod, self.function.split('.')[-1])
+            try:
+                mod = __import__('.'.join(self.function.split('.')[:-1]), {}, {}, [self.function.split('.')[-1]])
+                self._function = getattr(mod, self.function.split('.')[-1])
+            except (ImportError, AttributeError), err:
+                raise ProcessorConfigurationError(err)
+
         return self._function
 
     def convert(self, src_txt):
-        return self.get_function()(src_txt)
+        function = self.get_function()
+        try:
+            return function(src_txt)
+        except Exception, err:
+            raise ProcessorError(err)
 
     class Meta:
         verbose_name = (_('Text processor'))

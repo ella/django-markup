@@ -1,4 +1,8 @@
-# TODO: Where we will define output format? (HTML4/5/XHTML/...)
+class ProcessorConfigurationError(Exception):
+    """ Raised when processor is badly configured (module not found, bad dependencies, ...) """
+
+class ProcessorError(Exception):
+    """ Raised when any error occurs during processor transformation (usually means a bug withing processing engine) """
 
 def markdown(src, **kwargs):
     try:
