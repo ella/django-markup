@@ -1,7 +1,7 @@
 from djangosanetesting import SeleniumTestCase
 
 class AdminTestCase(SeleniumTestCase):
-#    fixtures = ['fixture_with_admin_user']
+    fixtures = ['example_admin_user']
 
     SUPERUSER_USERNAME = u"superman"
     SUPERUSER_PASSWORD = u"xxx"

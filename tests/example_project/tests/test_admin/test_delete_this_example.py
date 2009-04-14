@@ -1,7 +1,7 @@
 
-from example_project.tests.test_newman.helpers import NewmanTestCase
+from example_project.tests.test_admin.helpers import AdminTestCase
 
-class TestArticleBasics(NewmanTestCase):
+class TestArticleBasics(AdminTestCase):
 
     # FIXME: remove
     def test_simple_login(self):

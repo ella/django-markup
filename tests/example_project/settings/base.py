@@ -54,6 +54,7 @@ INSTALLED_APPS = (
 #    'south',
 
     'django.contrib.admin',
+    'exampleapp',
 )
 
 VERSION = 1
