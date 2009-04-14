@@ -3,8 +3,6 @@ from django.forms.util import ValidationError
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
 
-MARKUP_APP_INSTALLED = False   # used by RichTextField
-
 class RichTextField(fields.Field):
     widget = widgets.RichTextAreaWidget
     default_error_messages = {
@@ -26,7 +24,7 @@ class RichTextField(fields.Field):
         setattr(self.widget, '_field', self)
 
     def is_markup(self):
-        return self.instance and MARKUP_APP_INSTALLED
+        return self.instance
 
     def get_source(self):
         if not self.is_markup():
@@ -58,8 +56,7 @@ class RichTextField(fields.Field):
         if value in fields.EMPTY_VALUES:
             return u''
         text = smart_unicode(value)
-        if not MARKUP_APP_INSTALLED:
-            return text
+
         # TODO save value to SourceText, return rendered. post_save signal !
         from ella.newman.markup.models import SourceText, TextProcessor
         if self.instance:
