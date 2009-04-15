@@ -1,12 +1,14 @@
+from django.contrib.contenttypes.models import ContentType
 from django.forms import fields
 from django.forms.util import ValidationError
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
 
 from djangomarkup.models import SourceText
+from djangomarkup.widgets import RichTextAreaWidget
 
 class RichTextField(fields.Field):
-    widget = widgets.RichTextAreaWidget
+    widget = RichTextAreaWidget
     default_error_messages = {
         'syntax_error': _('Bad syntax in markdown formatting or template tags.'),
         'url_error':  _('Some links are invalid: %s.'),
@@ -18,6 +20,7 @@ class RichTextField(fields.Field):
         self.field_name = kwargs.pop('field_name')
         self.instance = kwargs.pop('instance')
         self.model = kwargs.pop('model')
+        self.request = kwargs.pop('request')
         if self.instance:
             self.ct = ContentType.objects.get_for_model(self.instance)
         else:
