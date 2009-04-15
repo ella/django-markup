@@ -1,0 +1,13 @@
+Source: django-markup
+Section: python
+Priority: optional
+Maintainer: Lukas Linhart <lukas.linhart@centrumholdings.com>
+Uploaders: Ondrej Kohout <ondrej.kohout@centrumholdings.com>, Lukas Linhart <lukas.linhart@centrumholdings.com>
+Build-Depends: cdbs (>= 0.4.41), debhelper (>= 5.0.37.2), python-dev, python-support (>= 0.3), python-setuptools
+Standards-Version: 3.7.2
+
+Package: django-markup
+Architecture: all
+Depends: ${python:Depends}, ${misc:Depends}, python-django
+Description: Support for markup languages in Django applications
+
