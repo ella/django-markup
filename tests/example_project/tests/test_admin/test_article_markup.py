@@ -13,9 +13,9 @@ class TestMarkup(AdminTestCase):
         s.type('id_text', text)
         s.click(self.elements['listing']['save'])
 
-        assert text in s.get_text(self.elements['listing']['list_first'])
+        assert "<p>%s</p>" % text in s.get_text(self.elements['listing']['list_first'])
 
-#        s.click(self.elements['listing']['list_first'])
+        s.click(self.elements['listing']['list_first'])
 
-#        self.assert_equals(u"<p>%s</p>" % text, s.get_value('id_text'))
+        self.assert_equals(text, s.get_value('id_text'))
 
