@@ -1,8 +1,8 @@
-from processors import ProcessorError
 from django.contrib.contenttypes.generic import GenericForeignKey
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
+from django.utils.importlib import import_module
 
 from djangomarkup.processors import ProcessorConfigurationError, ProcessorError
 
@@ -40,8 +40,9 @@ class TextProcessor(models.Model):
         """
         if not hasattr(self, '_function'):
             try:
-                mod = __import__('.'.join(self.function.split('.')[:-1]), {}, {}, [self.function.split('.')[-1]])
-                self._function = getattr(mod, self.function.split('.')[-1])
+                modname, funcname = self.function.rsplit('.', 1)
+                mod = import_module(modname)
+                self._function = getattr(mod, funcname)
             except (ImportError, AttributeError), err:
                 raise ProcessorConfigurationError(err)
 
