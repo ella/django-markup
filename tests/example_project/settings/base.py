@@ -5,7 +5,6 @@ from os.path import dirname, join
 import django
 
 import example_project
-import ella
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.load_template_source',
