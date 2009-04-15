@@ -3,6 +3,8 @@ from django.forms.util import ValidationError
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
 
+from djangomarkup.models import SourceText
+
 class RichTextField(fields.Field):
     widget = widgets.RichTextAreaWidget
     default_error_messages = {
@@ -23,14 +25,7 @@ class RichTextField(fields.Field):
         super(RichTextField, self).__init__(*args, **kwargs)
         setattr(self.widget, '_field', self)
 
-    def is_markup(self):
-        return self.instance
-
     def get_source(self):
-        if not self.is_markup():
-            return
-        # find SourceText associated with instance
-        from ella.newman.markup.models import SourceText
         try:
             src_text = SourceText.objects.get(ct=self.ct, obj_id=self.instance.pk, field=self.field_name)
         except SourceText.DoesNotExist:
@@ -40,13 +35,9 @@ class RichTextField(fields.Field):
         return src_text
 
     def get_source_text(self):
-        if not self.is_markup():
-            return
         return self.get_source().content
 
     def get_rendered_text(self):
-        if not self.is_markup():
-            return
         return self.get_source().render()
 
     def clean(self, value):
