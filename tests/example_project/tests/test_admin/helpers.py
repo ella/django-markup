@@ -12,7 +12,7 @@ class AdminTestCase(SeleniumTestCase):
         super(AdminTestCase, self).__init__()
         self.elements = {
             'navigation' : {
-                'logout' : '//a[@href="%slogout/"]' % self.URI
+                'logout' : '//a[contains(@href, "%slogout/")]' % self.URI
             },
             'pages' : {
                 'login' : {
