@@ -14,12 +14,30 @@ class AdminTestCase(SeleniumTestCase):
             'navigation' : {
                 'logout' : '//a[contains(@href, "%slogout/")]' % self.URI
             },
+            'listing' : {
+                'save' : '//input[@name="_save"]',
+                'delete' : '//a[@class="deletelink"]',
+                'delete_confirm' : '//div[@id="content"]//form/div/input[@type="submit"]',
+                'list_first' : '//div[@id="changelist"]//table/tbody/tr[position()=1]/th[position()=1]/a',
+            },
             'pages' : {
+                'welcome' : {
+                    'exampleapp_article' : '//a[ends-with(@href, "exampleapp/article/")]',
+                    'exampleapp_article_add' : '//a[contains(@href, "exampleapp/article/add/")]',
+                },
                 'login' : {
                     'submit' : "//input[@type='submit']"
                 }
             }
         }
+
+    def setUp(self):
+        super(AdminTestCase, self).setUp()
+        self.login_superuser()
+
+    def tearDown(self):
+        self.logout()
+        super(AdminTestCase, self).tearDown()
 
     def login_superuser(self):
         self.selenium.open(self.URI)

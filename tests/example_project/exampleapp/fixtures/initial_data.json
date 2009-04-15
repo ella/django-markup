@@ -3,7 +3,7 @@
     "pk": 1, 
     "model": "djangomarkup.textprocessor", 
     "fields": {
-      "function": "djangomarkup.processor.markdown", 
+      "function": "djangomarkup.processors.markdown",
       "processor_options": "", 
       "name": "markdown"
     }
