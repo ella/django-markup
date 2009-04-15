@@ -72,6 +72,6 @@ class SourceText(models.Model):
         return self.processor.convert(self.content)
 
     class Meta:
-        unique_together = (('content', 'object_id', 'field'),)
+        unique_together = (('content_type', 'object_id', 'field'),)
         verbose_name = (_('Text source'))
         verbose_name_plural = (_('Text sources'))
