@@ -3,7 +3,7 @@ import djangomarkup
 
 setup(
     name = 'django-markup',
-    version = djangomarkup.__version__,
+    version = djangomarkup.__versionstr__,
     description = 'Support for various markup languages in Django applications',
     long_description = '\n'.join((
         '(TODO)',
@@ -18,8 +18,5 @@ setup(
 
     include_package_data = True,
 
-    install_requires = [
-        'setuptools>=0.6b1',
-    ],
 )
 
