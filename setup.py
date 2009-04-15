@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import djangomarkup
 
 setup(
-    name = 'django-markup',
+    name = 'djangomarkup',
     version = djangomarkup.__versionstr__,
     description = 'Support for various markup languages in Django applications',
     long_description = '\n'.join((
