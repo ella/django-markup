@@ -14,15 +14,16 @@ from djangomarkup.widgets import RichTextAreaWidget
 
 log = logging.getLogger('djangomarkup')
 
-def listener_post_save(sender, signal, created, **kwargs):
-    log.debug('Listener activated by %s, sig=%s, created=%s' % (sender, signal, created))
-    log.debug('Listener kwargs=%s' % kwargs)
-    if not hasattr(listener_post_save, 'src_text'):
-        return
-    src_text = listener_post_save.src_text
-    if ContentType.objects.get_for_model(kwargs['instance']) == src_text.content_type:
-        delattr(listener_post_save, 'src_text')
-        signals.post_save.disconnect(receiver=listener_post_save)
+class ListenerPostSave(object):
+    def __init__(self, src_text):
+        self.src_text = src_text
+
+    def __call__(self, sender, signal, created, **kwargs):
+        log.debug('Listener activated by %s, sig=%s, created=%s' % (sender, signal, created))
+        log.debug('Listener kwargs=%s' % kwargs)
+        src_text = self.src_text
+
+        signals.post_save.disconnect(receiver=self, sender=src_text.content_type.model_class())
         log.debug('Signal listener disconnected')
         src_text.object_id = kwargs['instance'].pk
         src_text.save()
@@ -35,19 +36,19 @@ class RichTextField(fields.Field):
         'link_error':  _('Some links are broken: %s.'),
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, model, instance, field_name, syntax_processor_name=None, request=None, **kwargs):
         # TODO: inform widget about selected processor (JS editor..)
-        self.field_name = kwargs.pop('field_name')
-        self.instance = kwargs.pop('instance')
-        self.model = kwargs.pop('model')
-        self.request = kwargs.pop('request', None)
-        self.processor = TextProcessor.objects.get(name=kwargs.pop("syntax_processor_name", None) or getattr(settings, "DEFAULT_MARKUP", "markdown"))
+        self.field_name = field_name
+        self.instance = instance
+        self.model = model
+        self.request = request
+        self.processor = TextProcessor.objects.get(name=syntax_processor_name or getattr(settings, "DEFAULT_MARKUP", "markdown"))
         if self.instance:
             self.ct = ContentType.objects.get_for_model(self.instance)
         else:
             self.ct = ContentType.objects.get_for_model(self.model)
 
-        super(RichTextField, self).__init__(*args, **kwargs)
+        super(RichTextField, self).__init__(**kwargs)
         self.widget._field = self
 
     def get_source(self):
@@ -94,6 +95,6 @@ class RichTextField(fields.Field):
             except:
                 raise ValidationError(self.error_messages['syntax_error'])
 
-            listener_post_save.src_text = src_text
-            signals.post_save.connect(listener_post_save)
+            listener_post_save = ListenerPostSave(src_text)
+            signals.post_save.connect(receiver=listener_post_save, sender=src_text.content_type.model_class(), weak=False)
         return rendered
