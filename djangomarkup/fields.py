@@ -69,12 +69,13 @@ class RichTextField(fields.Field):
         return self.get_source().render()
 
     def clean(self, value):
+        """
+        When cleaning field, store original value to SourceText model and return rendered field.
+        @raise ValidationError when something went wrong with transformation.
+        """
         super_value = super(RichTextField, self).clean(value)
-        if value in fields.EMPTY_VALUES:
-            return u''
         text = smart_unicode(value)
 
-        # TODO save value to SourceText, return rendered. post_save signal !
         if self.instance:
             try:
                 src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
@@ -84,7 +85,7 @@ class RichTextField(fields.Field):
             src_text.content = text
             try:
                 rendered = src_text.render()
-            except:
+            except Exception, err:
                 raise ValidationError(self.error_messages['syntax_error'])
             src_text.save()
         else:
@@ -97,7 +98,7 @@ class RichTextField(fields.Field):
             )
             try:
                 rendered = src_text.render()
-            except:
+            except Exception, err:
                 raise ValidationError(self.error_messages['syntax_error'])
 
             listener_post_save = ListenerPostSave(src_text)
