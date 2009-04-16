@@ -1,11 +1,10 @@
-from djangosanetesting.cases import DatabaseTestCase
+from djangosanetesting.cases import UnitTestCase
 
 from djangomarkup.fields import RichTextField
-from djangomarkup.models import SourceText
 
 from exampleapp.models import Article
 
-class TestRichTextField(DatabaseTestCase):
+class TestRichTextField(UnitTestCase):
 
     def setUp(self):
         super(TestRichTextField, self).setUp()
@@ -28,3 +27,14 @@ class TestRichTextField(DatabaseTestCase):
     def test_render_available_for_empty_article(self):
         self.assert_equals(u'<p></p>', self.field.get_rendered_text().strip())
 
+    def test_value_error_raised_when_accessing_source_without_instance(self):
+        field = RichTextField(
+            instance = None,
+            model = Article,
+            syntax_processor_name = "markdown",
+            field_name = "text",
+            required = True,
+            label = "Text"
+        )
+
+        self.assert_raises(ValueError, field.get_source)
