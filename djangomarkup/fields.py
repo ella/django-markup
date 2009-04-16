@@ -11,7 +11,6 @@ from django.contrib.contenttypes.models import ContentType
 from djangomarkup.models import SourceText, TextProcessor
 from djangomarkup.widgets import RichTextAreaWidget
 
-
 log = logging.getLogger('djangomarkup')
 
 class ListenerPostSave(object):
@@ -53,12 +52,14 @@ class RichTextField(fields.Field):
 
     def get_source(self):
         try:
-            assert self.instance is not None, "Trying to retrieve source for unsaved object"
+            if self.instance is None:
+                raise ValueError("Trying to retrieve source, but no object is available")
             src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
         except SourceText.DoesNotExist:
-            log.warning('SourceText.DoesNotExist for ct=%d obj_id=%d field=%s' % (self.ct.pk, self.instance.pk, self.field_name))
+            log.warning('SourceText.DoesNotExist for ct=%s obj_id=%s field=%s' % (self.ct.pk, self.instance.pk, self.field_name))
             #raise NotFoundError(u'No SourceText defined for object [%s] , field [%s] ' % ( self.instance.__unicode__(), self.field_name))
-            return SourceText()
+            src_text = SourceText(processor=self.processor)
+
         return src_text
 
     def get_source_text(self):
@@ -68,14 +69,19 @@ class RichTextField(fields.Field):
         return self.get_source().render()
 
     def clean(self, value):
+        """
+        When cleaning field, store original value to SourceText model and return rendered field.
+        @raise ValidationError when something went wrong with transformation.
+        """
         super_value = super(RichTextField, self).clean(value)
-        if value in fields.EMPTY_VALUES:
-            return u''
         text = smart_unicode(value)
 
-        # TODO save value to SourceText, return rendered. post_save signal !
         if self.instance:
-            src_text, created = SourceText.objects.get_or_create(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
+            try:
+                src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
+                assert src_text.processor == self.processor
+            except SourceText.DoesNotExist:
+                src_text = SourceText.objects.create(content_type=self.ct, object_id=self.instance.pk, field=self.field_name, processor=self.processor)
             src_text.content = text
             try:
                 rendered = src_text.render()
@@ -92,7 +98,7 @@ class RichTextField(fields.Field):
             )
             try:
                 rendered = src_text.render()
-            except:
+            except Exception, err:
                 raise ValidationError(self.error_messages['syntax_error'])
 
             listener_post_save = ListenerPostSave(src_text)
