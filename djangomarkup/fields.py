@@ -85,7 +85,7 @@ class RichTextField(fields.Field):
             src_text.content = text
             try:
                 rendered = src_text.render()
-            except Exception, err:
+            except ProcessorError, e:
                 raise ValidationError(self.error_messages['syntax_error'])
             src_text.save()
         else:
