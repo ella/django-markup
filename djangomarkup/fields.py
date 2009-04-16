@@ -11,7 +11,6 @@ from django.contrib.contenttypes.models import ContentType
 from djangomarkup.models import SourceText, TextProcessor
 from djangomarkup.widgets import RichTextAreaWidget
 
-
 log = logging.getLogger('djangomarkup')
 
 class ListenerPostSave(object):
@@ -53,12 +52,14 @@ class RichTextField(fields.Field):
 
     def get_source(self):
         try:
-            assert self.instance is not None, "Trying to retrieve source for unsaved object"
+            if self.instance is None:
+                raise ValueError("Trying to retrieve source, but no object is available")
             src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
         except SourceText.DoesNotExist:
-            log.warning('SourceText.DoesNotExist for ct=%d obj_id=%d field=%s' % (self.ct.pk, self.instance.pk, self.field_name))
+            log.warning('SourceText.DoesNotExist for ct=%s obj_id=%s field=%s' % (self.ct.pk, self.instance.pk, self.field_name))
             #raise NotFoundError(u'No SourceText defined for object [%s] , field [%s] ' % ( self.instance.__unicode__(), self.field_name))
-            return SourceText()
+            src_text = SourceText(processor=self.processor)
+
         return src_text
 
     def get_source_text(self):
