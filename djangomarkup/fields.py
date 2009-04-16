@@ -76,7 +76,11 @@ class RichTextField(fields.Field):
 
         # TODO save value to SourceText, return rendered. post_save signal !
         if self.instance:
-            src_text, created = SourceText.objects.get_or_create(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
+            try:
+                src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
+                assert src_text.processor == self.processor
+            except SourceText.DoesNotExist:
+                src_text = SourceText.objects.create(content_type=self.ct, object_id=self.instance.pk, field=self.field_name, processor=self.processor)
             src_text.content = text
             try:
                 rendered = src_text.render()

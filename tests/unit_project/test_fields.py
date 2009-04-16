@@ -1,13 +1,16 @@
-from djangosanetesting.cases import UnitTestCase
+# -*- coding: utf-8 -*-
+from xml.dom import ValidationErr
+from djangosanetesting.cases import UnitTestCase, DatabaseTestCase
 
 from djangomarkup.fields import RichTextField
+from djangomarkup.models import SourceText
 
 from exampleapp.models import Article
 
-class TestRichTextField(UnitTestCase):
+class TestRichTextFieldModifications(UnitTestCase):
 
     def setUp(self):
-        super(TestRichTextField, self).setUp()
+        super(TestRichTextFieldModifications, self).setUp()
         self.field = RichTextField(
             instance = Article(),
             model = Article,
@@ -38,3 +41,23 @@ class TestRichTextField(UnitTestCase):
         )
 
         self.assert_raises(ValueError, field.get_source)
+
+
+class TestRichTextFieldCleaning(DatabaseTestCase):
+    def setUp(self):
+        super(TestRichTextFieldCleaning, self).setUp()
+
+        self.text = u"我说，你们听。"
+        self.article = Article.objects.create(text=self.text)
+        self.field = RichTextField(
+            instance = self.article,
+            model = Article,
+            syntax_processor_name = "markdown",
+            field_name = "text",
+            required = True,
+            label = "Text"
+        )
+
+    def test_value_stored(self):
+        self.field.clean(value=self.text)
+        self.assert_equals(self.text, SourceText.objects.all()[0].content)
