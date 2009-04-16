@@ -4,13 +4,13 @@ from django.contrib.sites.admin import admin
 from djangomarkup.models import SourceText, TextProcessor
 from djangomarkup.fields import RichTextField
 
-class RichTextOptions(ModelAdmin):
+class RichTextModelAdmin(ModelAdmin):
     rich_text_field_names = []
     syntax_processor_name = "markdown"
     
     def get_form(self, request, obj=None, **kwargs):
         self._magic_instance = obj # adding edited object to ModelAdmin instance.
-        return super(RichTextOptions, self).get_form(request, obj, **kwargs)
+        return super(RichTextModelAdmin, self).get_form(request, obj, **kwargs)
 
     
     def formfield_for_dbfield(self, db_field, **kwargs):
@@ -24,7 +24,7 @@ class RichTextOptions(ModelAdmin):
                 'syntax_processor_name' : self.syntax_processor_name,
             })
             return RichTextField(**kwargs)
-        return super(RichTextOptions, self).formfield_for_dbfield(db_field, **kwargs)
+        return super(RichTextModelAdmin, self).formfield_for_dbfield(db_field, **kwargs)
 
 admin.site.register(SourceText)
 admin.site.register(TextProcessor)

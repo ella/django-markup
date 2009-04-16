@@ -33,10 +33,10 @@ As an example, consider this class: ::
 Now You want to let user edit this model in admin in markup of your choice and have HTML rendered in text attribute. For that, you must create your own :class:`ModelAdmin` and register it with your model. Using prepared one from django-markup, this is fairly easy: just create :mod:`admin.py` module in your application and insert something like this: ::
 
 	from django.contrib.sites.admin import admin
-	from djangomarkup.admin import RichTextOptions
+	from djangomarkup.admin import RichTextModelAdmin
 	from exampleapp.models import Article
 
-	class ArticleOptions(RichTextOptions):
+	class ArticleOptions(RichTextModelAdmin):
 		rich_text_field_names = ["text"]
 		syntax_processor_name = "markdown"
 
