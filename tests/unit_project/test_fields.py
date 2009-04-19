@@ -57,15 +57,15 @@ class TestRichTextFieldCleaning(DatabaseTestCase):
             label = "Text"
         )
 
-    def test_source_text_stored_on_form_clean(self):
+    def test_source_text_not_stored_on_form_clean(self):
         self.field.clean(value=self.text)
-        self.assert_equals(self.text, SourceText.objects.all()[0].content)
+        self.assert_equals(0, len(SourceText.objects.all()))
 
-    def test_source_text_stored_on_update(self):
-        self.field.clean(value=self.text)
-        new_value = u"对不起"
-        self.field.clean(value=new_value)
-        self.assert_equals(new_value, SourceText.objects.all()[0].content)
+#    def test_source_text_stored_on_update(self):
+#        self.field.clean(value=self.text)
+#        new_value = u"对不起"
+#        self.field.clean(value=new_value)
+#        self.assert_equals(new_value, SourceText.objects.all()[0].content)
 
     def test_render_retrieved(self):
         self.assert_equals(u"<p>%s</p>" % self.text, self.field.clean(value=self.text).strip())

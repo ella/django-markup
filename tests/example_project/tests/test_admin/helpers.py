@@ -12,18 +12,21 @@ class AdminTestCase(SeleniumTestCase):
         super(AdminTestCase, self).__init__()
         self.elements = {
             'navigation' : {
-                'logout' : '//a[contains(@href, "%slogout/")]' % self.URI
+                'logout' : '//a[contains(@href, "%slogout/")]' % self.URI,
+                'home' : '//div[@class="breadcrumbs"]/a[position()=1]',
             },
             'listing' : {
                 'save' : '//input[@name="_save"]',
                 'delete' : '//a[@class="deletelink"]',
                 'delete_confirm' : '//div[@id="content"]//form/div/input[@type="submit"]',
                 'list_first' : '//div[@id="changelist"]//table/tbody/tr[position()=1]/th[position()=1]/a',
+                'count_field' : '//div[@id="changelist"]/form/p',
             },
             'pages' : {
                 'welcome' : {
                     'exampleapp_article' : '//a[ends-with(@href, "exampleapp/article/")]',
                     'exampleapp_article_add' : '//a[contains(@href, "exampleapp/article/add/")]',
+                    'djangomarkup_text_sources' : '//a[contains(@href, "djangomarkup/sourcetext/")]',
                 },
                 'login' : {
                     'submit' : "//input[@type='submit']"

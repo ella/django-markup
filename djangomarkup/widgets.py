@@ -12,8 +12,11 @@ class RichTextAreaWidget(forms.Textarea):
 #        super(RichTextAreaWidget, self).__init__(attrs={'class': css_class})
 
     def render(self, name, value, attrs=None):
-        if value:
+        try:
             src_text = self._field.get_source_text()
-        else:
+        except ValueError, err:
+            # ValueError raised when instance is not available; that happens
+            # when we're revalidating invalid form
             src_text = value
+        
         return super(RichTextAreaWidget, self).render(name, src_text, attrs)

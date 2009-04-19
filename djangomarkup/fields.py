@@ -15,6 +15,7 @@ log = logging.getLogger('djangomarkup')
 
 class ListenerPostSave(object):
     def __init__(self, src_text):
+        super(ListenerPostSave, self).__init__()
         self.src_text = src_text
 
     def __call__(self, sender, signal, created, **kwargs):
@@ -53,6 +54,8 @@ class RichTextField(fields.Field):
     def get_source(self):
         try:
             if self.instance is None:
+                import traceback
+                traceback.print_stack()
                 raise ValueError("Trying to retrieve source, but no object is available")
             src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
         except SourceText.DoesNotExist:
@@ -81,16 +84,15 @@ class RichTextField(fields.Field):
                 src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
                 assert src_text.processor == self.processor
             except SourceText.DoesNotExist:
-                src_text = SourceText.objects.create(content_type=self.ct, object_id=self.instance.pk, field=self.field_name, processor=self.processor)
+                src_text = SourceText(content_type=self.ct, object_id=self.instance.pk, field=self.field_name, processor=self.processor)
             src_text.content = text
             try:
                 rendered = src_text.render()
             except ProcessorError, e:
                 raise ValidationError(self.error_messages['syntax_error'])
-            src_text.save()
         else:
             # in case of adding new model, instance is not set
-            src_text = SourceText(
+            self.instance = src_text = SourceText(
                 content_type=self.ct,
                 field=self.field_name,
                 content=text,
@@ -101,6 +103,6 @@ class RichTextField(fields.Field):
             except Exception, err:
                 raise ValidationError(self.error_messages['syntax_error'])
 
-            listener_post_save = ListenerPostSave(src_text)
-            signals.post_save.connect(receiver=listener_post_save, sender=src_text.content_type.model_class(), weak=False)
+        listener_post_save = ListenerPostSave(src_text)
+        signals.post_save.connect(receiver=listener_post_save, sender=src_text.content_type.model_class(), weak=False)
         return rendered
