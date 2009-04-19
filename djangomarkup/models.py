@@ -77,7 +77,7 @@ class SourceText(models.Model):
     content = models.TextField()
 
     def __unicode__(self):
-        return u"Source text for %s:%s" % (self.target, self.field)
+        return u"Source text of %s '%s' %s" % (self.content_type, self.target, self.field)
 
     @property
     def target_field(self):
