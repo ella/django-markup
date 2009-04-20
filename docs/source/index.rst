@@ -51,6 +51,28 @@ Using markup editor in admin
 TODO: not implemented yet
 
 ----------------------------
+Using preview
+----------------------------
+
+If you want to implement some sort of preview on your page (as admin will do), you can POST text to proper view and display result to user. First, include urls::
+
+	from django.conf.urls.defaults import *
+
+	urlpatterns = patterns('',
+		(r'^', include('djangomarkup.urls')),
+	)
+
+and then, resolve URL using :func:`reverse` and enjoy::
+		
+		from django.core.urlresolvers import reverse
+
+		uri = reverse('processor_preview', kwargs={'processor_name' : "markdown"})
+		mockup_text = u"beer - 啤酒"
+
+		response = self.client.post(path=uri, data={'text' : mockup_text})
+		self.assert_equals(u"<p>%s</p>\n" % self.mockup_text, response.content.decode('utf-8'))
+
+----------------------------
 Using unsupported markup
 ----------------------------
 TODO: insert row in :class:`Processor` with function pointing to yours.
