@@ -54,8 +54,6 @@ class RichTextField(fields.Field):
     def get_source(self):
         try:
             if self.instance is None:
-                import traceback
-                traceback.print_stack()
                 raise ValueError("Trying to retrieve source, but no object is available")
             src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
         except SourceText.DoesNotExist:
