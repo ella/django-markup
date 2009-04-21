@@ -36,7 +36,7 @@ class RichTextField(fields.Field):
         'link_error':  _('Some links are broken: %s.'),
     }
 
-    def __init__(self, model, instance, field_name, syntax_processor_name=None, request=None, **kwargs):
+    def __init__(self, model, instance, field_name, syntax_processor_name=None, request=None, post_save_listeners=None, **kwargs):
         # TODO: inform widget about selected processor (JS editor..)
         self.field_name = field_name
         self.instance = instance
@@ -47,6 +47,8 @@ class RichTextField(fields.Field):
             self.ct = ContentType.objects.get_for_model(self.instance)
         else:
             self.ct = ContentType.objects.get_for_model(self.model)
+
+        self.post_save_listeners = post_save_listeners or [ListenerPostSave]
 
         super(RichTextField, self).__init__(**kwargs)
         self.widget._field = self
@@ -101,6 +103,7 @@ class RichTextField(fields.Field):
             except Exception, err:
                 raise ValidationError(self.error_messages['syntax_error'])
 
-        listener_post_save = ListenerPostSave(src_text)
-        signals.post_save.connect(receiver=listener_post_save, sender=src_text.content_type.model_class(), weak=False)
+        for listener in self.post_save_listeners:
+            listener_post_save = listener(src_text)
+            signals.post_save.connect(receiver=listener_post_save, sender=src_text.content_type.model_class(), weak=False)
         return rendered
