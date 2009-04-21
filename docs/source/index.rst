@@ -63,7 +63,7 @@ If you want to implement some sort of preview on your page (as admin will do), y
 	)
 
 and then, resolve URL using :func:`reverse` and enjoy::
-		
+
 		from django.core.urlresolvers import reverse
 
 		uri = reverse('processor_preview', kwargs={'processor_name' : "markdown"})
@@ -76,3 +76,45 @@ and then, resolve URL using :func:`reverse` and enjoy::
 Using unsupported markup
 ----------------------------
 TODO: insert row in :class:`Processor` with function pointing to yours.
+
+-----------------------------
+Attaching to post-save signals
+-----------------------------
+
+You may need to attach post-save signal to Your model only if it passes field validation. That is easy: just pass post_save_receivers to :class:`RichTextField` constructor and expect src_text argument::
+
+	class ExamplePostSave(object):
+	    def __init__(self, src_text):
+		super(ExamplePostSave, self).__init__()
+		self.src_text = src_text
+		self.called = False
+
+	    def __call__(self, sender, signal, created, **kwargs):
+		self.called = True
+		signals.post_save.disconnect(receiver=self, sender=self.src_text.content_type.model_class())
+
+	from djangomarkup.fields import RichTextField
+
+	field = RichTextField(
+	    instance = self.article,
+	    model = Article,
+	    syntax_processor_name = "markdown",
+	    field_name = "text",
+	    required = True,
+	    label = "Text",
+	    post_save_listeners = [ExamplePostSave],
+	)
+
+Remember you're responsible for disconnecting. Also, original post_save signal (that stores :class:`SourceText`) is overwritten; if You still want storing original texts, add it too::
+
+	from djangomarkup.fields import RichTextField, ListenerPostSave
+
+	field = RichTextField(
+	    instance = self.article,
+	    model = Article,
+	    syntax_processor_name = "markdown",
+	    field_name = "text",
+	    required = True,
+	    label = "Text",
+	    post_save_listeners = [ExamplePostSave, ListenerPostSave],
+	)
