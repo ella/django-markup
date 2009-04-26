@@ -105,7 +105,7 @@ You may need to attach post-save signal to Your model only if it passes field va
 	    post_save_listeners = [ExamplePostSave],
 	)
 
-Remember you're responsible for disconnecting. Also, original post_save signal (that stores :class:`SourceText`) is overwritten; if You still want storing original texts, add it too::
+Remember you're responsible for disconnecting. Also, original post_save signal receiver (:class:`ListenerPostSave` that stores :class:`SourceText`) is preserved overwritten; if You don't want to save articles in original format (because Your signal is inheriting from it or whatever), add ``overwrite_original_listeners`` argument::
 
 	from djangomarkup.fields import RichTextField, ListenerPostSave
 
@@ -116,5 +116,6 @@ Remember you're responsible for disconnecting. Also, original post_save signal (
 	    field_name = "text",
 	    required = True,
 	    label = "Text",
-	    post_save_listeners = [ExamplePostSave, ListenerPostSave],
+	    post_save_listeners = [ExamplePostSave],
+        overwrite_original_listeners = True
 	)

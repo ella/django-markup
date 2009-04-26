@@ -36,8 +36,10 @@ class RichTextField(fields.Field):
         'link_error':  _('Some links are broken: %s.'),
     }
 
-    def __init__(self, model, instance, field_name, syntax_processor_name=None, request=None, post_save_listeners=None, **kwargs):
+    def __init__(self, model, instance, field_name, syntax_processor_name=None, request=None, post_save_listeners=None, overwrite_original_listeners=False, **kwargs):
         # TODO: inform widget about selected processor (JS editor..)
+        self.original_listeners = [ListenerPostSave]
+
         self.field_name = field_name
         self.instance = instance
         self.model = model
@@ -48,7 +50,10 @@ class RichTextField(fields.Field):
         else:
             self.ct = ContentType.objects.get_for_model(self.model)
 
-        self.post_save_listeners = post_save_listeners or [ListenerPostSave]
+        if overwrite_original_listeners:
+            self.post_save_listeners = post_save_listeners or []
+        else:
+            self.post_save_listeners = self.original_listeners + (post_save_listeners or [])
 
         super(RichTextField, self).__init__(**kwargs)
         self.widget._field = self
