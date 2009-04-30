@@ -20,6 +20,7 @@ class AdminTestCase(SeleniumTestCase):
                 'delete' : '//a[@class="deletelink"]',
                 'delete_confirm' : '//div[@id="content"]//form/div/input[@type="submit"]',
                 'list_first' : '//div[@id="changelist"]//table/tbody/tr[position()=1]/th[position()=1]/a',
+                'list_second' : '//div[@id="changelist"]//table/tbody/tr[position()=2]/th[position()=1]/a',
                 'count_field' : '//div[@id="changelist"]/form/p',
             },
             'pages' : {
