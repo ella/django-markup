@@ -95,6 +95,21 @@ class TestRichTextFieldCleaning(DatabaseTestCase):
         )
         self.assert_equals(self.field.get_rendered_text(), self.field.clean(u''))
 
+    def test_deleting_article_deletes_source_text(self):
+        self.field = RichTextField(
+            instance = None,
+            model = Article,
+            syntax_processor_name = "markdown",
+            field_name = "text",
+            required = True,
+            label = "Text"
+        )
+        a = Article.objects.create(text=self.field.clean(value=self.text))
+        a.delete()
+
+        self.assert_equals(0, SourceText.objects.count())
+
+
 class TestSignalHandling(DatabaseTestCase):
     def setUp(self):
         super(TestSignalHandling, self).setUp()
