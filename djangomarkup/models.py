@@ -44,7 +44,7 @@ class TextProcessor(models.Model):
                 modname, funcname = self.function.rsplit('.', 1)
                 mod = import_module(modname)
                 self._function = getattr(mod, funcname)
-            except (ImportError, AttributeError), err:
+            except (ImportError, AttributeError, ValueError), err:
                 raise ProcessorConfigurationError(err)
 
         return self._function
