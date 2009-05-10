@@ -10,6 +10,7 @@ from django.db.models import signals
 from django.contrib.contenttypes.models import ContentType
 from djangomarkup.models import SourceText, TextProcessor
 from djangomarkup.widgets import RichTextAreaWidget
+from djangomarkup.processors import ProcessorConfigurationError, ProcessorError
 
 log = logging.getLogger('djangomarkup')
 
