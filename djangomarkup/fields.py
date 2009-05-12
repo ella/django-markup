@@ -30,15 +30,20 @@ class ListenerPostSave(object):
         src_text.save()
 
 class RichTextField(fields.Field):
+    # default post save listenere. Override this to provide custom logic in subclass
     post_save_listener = ListenerPostSave
+
+    # default widget
     widget = RichTextAreaWidget
+
+    # default messages
     default_error_messages = {
         'syntax_error': _('Bad syntax in syntax formatting or template tags.'),
         'url_error':  _('Some links are invalid: %s.'),
         'link_error':  _('Some links are broken: %s.'),
     }
 
-    def __init__(self, model, instance, field_name, syntax_processor_name=None, request=None, overwrite_original_listeners=False, **kwargs):
+    def __init__(self, model, field_name, instance=None, syntax_processor_name=None, request=None, overwrite_original_listeners=False, **kwargs):
         # TODO: inform widget about selected processor (JS editor..)
 
         self.field_name = field_name
@@ -72,6 +77,12 @@ class RichTextField(fields.Field):
     def get_rendered_text(self):
         return self.get_source().render()
 
+    def validate_rendered(self, rendered):
+        """
+        Hook for addition validations subclasses might want to impose (HTML sanitization for example).
+        """
+        pass
+
     def clean(self, value):
         """
         When cleaning field, store original value to SourceText model and return rendered field.
@@ -103,6 +114,8 @@ class RichTextField(fields.Field):
                 rendered = src_text.render()
             except Exception, err:
                 raise ValidationError(self.error_messages['syntax_error'])
+
+        self.validate_rendered(rendered)
 
         # register the listener that saves the SourceText
         listener = self.post_save_listener(src_text)
