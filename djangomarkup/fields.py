@@ -30,6 +30,7 @@ class ListenerPostSave(object):
         src_text.save()
 
 class RichTextField(fields.Field):
+    post_save_listener = ListenerPostSave
     widget = RichTextAreaWidget
     default_error_messages = {
         'syntax_error': _('Bad syntax in syntax formatting or template tags.'),
@@ -37,9 +38,8 @@ class RichTextField(fields.Field):
         'link_error':  _('Some links are broken: %s.'),
     }
 
-    def __init__(self, model, instance, field_name, syntax_processor_name=None, request=None, post_save_listeners=None, overwrite_original_listeners=False, **kwargs):
+    def __init__(self, model, instance, field_name, syntax_processor_name=None, request=None, overwrite_original_listeners=False, **kwargs):
         # TODO: inform widget about selected processor (JS editor..)
-        self.original_listeners = [ListenerPostSave]
 
         self.field_name = field_name
         self.instance = instance
@@ -50,11 +50,6 @@ class RichTextField(fields.Field):
             self.ct = ContentType.objects.get_for_model(self.instance)
         else:
             self.ct = ContentType.objects.get_for_model(self.model)
-
-        if overwrite_original_listeners:
-            self.post_save_listeners = post_save_listeners or []
-        else:
-            self.post_save_listeners = self.original_listeners + (post_save_listeners or [])
 
         super(RichTextField, self).__init__(**kwargs)
         self.widget._field = self
@@ -109,7 +104,7 @@ class RichTextField(fields.Field):
             except Exception, err:
                 raise ValidationError(self.error_messages['syntax_error'])
 
-        for listener in self.post_save_listeners:
-            listener_post_save = listener(src_text)
-            signals.post_save.connect(receiver=listener_post_save, sender=src_text.content_type.model_class(), weak=False)
+        # register the listener that saves the SourceText
+        listener = self.post_save_listener(src_text)
+        signals.post_save.connect(receiver=listener, sender=src_text.content_type.model_class(), weak=False)
         return rendered

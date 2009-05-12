@@ -7,7 +7,6 @@ from djangomarkup.fields import RichTextField, ListenerPostSave
 from djangomarkup.models import SourceText
 
 from exampleapp.models import Article
-from unit_project.helpers import ExamplePostSave
 
 class TestRichTextFieldModifications(UnitTestCase):
 
@@ -110,69 +109,3 @@ class TestRichTextFieldCleaning(DatabaseTestCase):
         self.assert_equals(0, SourceText.objects.count())
 
 
-class TestSignalHandling(DatabaseTestCase):
-    def setUp(self):
-        super(TestSignalHandling, self).setUp()
-        
-        self.text = u"我说，你们听。"
-        self.article = Article.objects.create(text=u"")
-        self.field = RichTextField(
-            instance = self.article,
-            model = Article,
-            syntax_processor_name = "markdown",
-            field_name = "text",
-            required = True,
-            label = "Text",
-            post_save_listeners = [ExamplePostSave],
-        )
-
-    def test_post_save_signal_gets_registered(self):
-        self.field.clean(self.text)
-        assert ExamplePostSave in [i[1].__class__ for i in signals.post_save.receivers]
-
-    def test_original_signal_got_called(self):
-        self.field.clean(self.text)
-        assert ListenerPostSave in [i[1].__class__ for i in signals.post_save.receivers]
-
-    def test_post_save_signal_gets_called_properly(self):
-        self.field.clean(self.text)
-        example_receivers = [i for i in signals.post_save.receivers if i[1].__class__ is ExamplePostSave]
-        # guard assertion, we do not expect application to conflict with us
-        # self.assert_equals(1, len(example_receivers))
-        receiver = example_receivers[0][1]
-
-        self.assert_equals(False, receiver.called)
-        
-        Article.objects.create(text=self.field.clean(value=self.text))
-
-        self.assert_equals(True, receiver.called)
-
-
-    def test_post_save_signal_not_called_when_not_given(self):
-        self.field = RichTextField(
-            instance = self.article,
-            model = Article,
-            syntax_processor_name = "markdown",
-            field_name = "text",
-            required = True,
-            label = "Text",
-        )
-        self.field.clean(self.text)
-        assert ExamplePostSave not in [i[1].__class__ for i in signals.post_save.receivers]
-
-    def test_original_saves_do_not_get_called_when_overwrite_given(self):
-        self.field = RichTextField(
-            instance = self.article,
-            model = Article,
-            syntax_processor_name = "markdown",
-            field_name = "text",
-            required = True,
-            label = "Text",
-            post_save_listeners = [ExamplePostSave],
-            overwrite_original_listeners = True,
-        )
-        self.field.clean(self.text)
-        assert ListenerPostSave not in [i[1].__class__ for i in signals.post_save.receivers]
-    
-    #TODO: on teardown, clean all our registered signals
-    
