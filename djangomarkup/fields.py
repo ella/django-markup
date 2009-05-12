@@ -19,14 +19,14 @@ class ListenerPostSave(object):
         super(ListenerPostSave, self).__init__()
         self.src_text = src_text
 
-    def __call__(self, sender, signal, created, **kwargs):
+    def __call__(self, sender, signal, created, instance, **kwargs):
         log.debug('Listener activated by %s, sig=%s, created=%s' % (sender, signal, created))
         log.debug('Listener kwargs=%s' % kwargs)
         src_text = self.src_text
 
         signals.post_save.disconnect(receiver=self, sender=src_text.content_type.model_class())
         log.debug('Signal listener disconnected')
-        src_text.object_id = kwargs['instance'].pk
+        src_text.object_id = instance.pk
         src_text.save()
 
 class RichTextField(fields.Field):
