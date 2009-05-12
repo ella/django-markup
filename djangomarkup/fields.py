@@ -43,13 +43,12 @@ class RichTextField(fields.Field):
         'link_error':  _('Some links are broken: %s.'),
     }
 
-    def __init__(self, model, field_name, instance=None, syntax_processor_name=None, request=None, overwrite_original_listeners=False, **kwargs):
+    def __init__(self, model, field_name, instance=None, syntax_processor_name=None, **kwargs):
         # TODO: inform widget about selected processor (JS editor..)
 
         self.field_name = field_name
         self.instance = instance
         self.model = model
-        self.request = request
         self.processor = TextProcessor.objects.get(name=syntax_processor_name or getattr(settings, "DEFAULT_MARKUP", "markdown"))
         if self.instance:
             self.ct = ContentType.objects.get_for_model(self.instance)
