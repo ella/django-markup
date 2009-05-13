@@ -46,6 +46,9 @@ class RichTextField(fields.Field):
     def __init__(self, model, field_name, instance=None, syntax_processor_name=None, **kwargs):
         # TODO: inform widget about selected processor (JS editor..)
 
+        if 'request' in kwargs:
+            kwargs.pop('request')
+
         self.field_name = field_name
         self.instance = instance
         self.model = model
