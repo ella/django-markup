@@ -24,7 +24,7 @@ class ListenerPostSave(object):
         log.debug('Listener kwargs=%s' % kwargs)
         src_text = self.src_text
 
-        signals.post_save.disconnect(receiver=self, sender=src_text.content_type.model_class())
+        signal.disconnect(receiver=self, sender=sender)
         log.debug('Signal listener disconnected')
         src_text.object_id = instance.pk
         src_text.save()
@@ -50,10 +50,7 @@ class RichTextField(fields.Field):
         self.instance = instance
         self.model = model
         self.processor = TextProcessor.objects.get(name=syntax_processor_name or getattr(settings, "DEFAULT_MARKUP", "markdown"))
-        if self.instance:
-            self.ct = ContentType.objects.get_for_model(self.instance)
-        else:
-            self.ct = ContentType.objects.get_for_model(self.model)
+        self.ct = ContentType.objects.get_for_model(model)
 
         super(RichTextField, self).__init__(**kwargs)
         self.widget._field = self
@@ -118,5 +115,5 @@ class RichTextField(fields.Field):
 
         # register the listener that saves the SourceText
         listener = self.post_save_listener(src_text)
-        signals.post_save.connect(receiver=listener, sender=src_text.content_type.model_class(), weak=False)
+        signals.post_save.connect(receiver=listener, sender=self.model, weak=False)
         return rendered
