@@ -31,7 +31,7 @@ def post_save_listener(sender, instance, src_text_attr=SRC_TEXT_ATTR, **kwargs):
         src_text.object_id = instance.pk
         src_text.save()
         src_texts.append(src_text)
-    return (instance, src_texts)
+    return src_texts
 
 class RichTextField(fields.Field):
     # default post save listenere. Override this to provide custom logic in wrapper

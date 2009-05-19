@@ -116,7 +116,7 @@ class TestSubclassing(DatabaseTestCase):
 
         my_arg = '__XXX'
         def wrapped_post_save_listener(sender, instance, **kwargs):
-            instance, src_textxs = post_save_listener(sender, instance, src_text_attr=my_arg, **kwargs)
+            src_texts = post_save_listener(sender, instance, src_text_attr=my_arg, **kwargs)
             wrapped_post_save_listener.called += 1
         wrapped_post_save_listener.called = 0
 
