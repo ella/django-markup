@@ -12,26 +12,31 @@ from djangomarkup.models import SourceText, TextProcessor
 from djangomarkup.widgets import RichTextAreaWidget
 from djangomarkup.processors import ProcessorConfigurationError, ProcessorError
 
+RICH_FIELDS_SET = '__rich_fields_list'
+SRC_TEXT_ATTR = '__src_text'
+
 log = logging.getLogger('djangomarkup')
 
-class ListenerPostSave(object):
-    def __init__(self, src_text):
-        super(ListenerPostSave, self).__init__()
-        self.src_text = src_text
+class UnicodeWrapper(unicode):
+    pass
 
-    def __call__(self, sender, signal, created, instance, **kwargs):
-        log.debug('Listener activated by %s, sig=%s, created=%s' % (sender, signal, created))
-        log.debug('Listener kwargs=%s' % kwargs)
-        src_text = self.src_text
+def post_save_listener(sender, instance, src_text_attr=SRC_TEXT_ATTR, **kwargs):
+    src_texts = []
+    for f in getattr(sender, RICH_FIELDS_SET, []):
+        rendered = getattr(instance, f)
+        if not isinstance(rendered, UnicodeWrapper) or not hasattr(rendered, src_text_attr):
+            continue
 
-        signal.disconnect(receiver=self, sender=sender)
-        log.debug('Signal listener disconnected')
+        src_text = getattr(rendered, src_text_attr)
         src_text.object_id = instance.pk
         src_text.save()
+        src_texts.append(src_text)
+    return (instance, src_texts)
 
 class RichTextField(fields.Field):
-    # default post save listenere. Override this to provide custom logic in subclass
-    post_save_listener = ListenerPostSave
+    # default post save listenere. Override this to provide custom logic in wrapper
+    post_save_listener = staticmethod(post_save_listener)
+    src_text_attr = SRC_TEXT_ATTR
 
     # default widget
     widget = RichTextAreaWidget
@@ -116,7 +121,16 @@ class RichTextField(fields.Field):
 
         self.validate_rendered(rendered)
 
+        if not hasattr(self.model, RICH_FIELDS_SET):
+            setattr(self.model, RICH_FIELDS_SET, set())
+        getattr(self.model, RICH_FIELDS_SET).add(self.field_name)
+
         # register the listener that saves the SourceText
-        listener = self.post_save_listener(src_text)
-        signals.post_save.connect(receiver=listener, sender=self.model, weak=False)
+        #listener = self.post_save_listener(src_text)
+        signals.post_save.connect(receiver=self.post_save_listener, sender=self.model)
+
+        # wrap the text so that we can store the src_text on it
+        rendered = UnicodeWrapper(rendered)
+        setattr(rendered, self.src_text_attr, src_text)
+
         return rendered

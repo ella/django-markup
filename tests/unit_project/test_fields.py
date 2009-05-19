@@ -4,7 +4,7 @@ from django.forms import ValidationError
 
 from djangosanetesting.cases import UnitTestCase, DatabaseTestCase
 
-from djangomarkup.fields import RichTextField, ListenerPostSave
+from djangomarkup.fields import RichTextField, post_save_listener
 from djangomarkup.models import SourceText
 
 from exampleapp.models import Article
@@ -114,18 +114,15 @@ class TestSubclassing(DatabaseTestCase):
     def test_custom_post_save_listener_called(self):
         article = Article.objects.create(text=u"")
 
-        class MyListenerPostSave(ListenerPostSave):
-            called = created = 0
-            def __init__(self, src_text):
-                super(MyListenerPostSave, self).__init__(src_text)
-                self.__class__.created += 1
-
-            def __call__(self, sender, signal, created, **kwargs):
-                super(MyListenerPostSave, self).__call__(sender, signal, created, **kwargs)
-                self.__class__.called += 1
+        my_arg = '__XXX'
+        def wrapped_post_save_listener(sender, instance, **kwargs):
+            instance, src_textxs = post_save_listener(sender, instance, src_text_attr=my_arg, **kwargs)
+            wrapped_post_save_listener.called += 1
+        wrapped_post_save_listener.called = 0
 
         class MyRichTextField(RichTextField):
-            post_save_listener = MyListenerPostSave
+            post_save_listener = staticmethod(wrapped_post_save_listener)
+            src_text_attr = my_arg
 
         field = MyRichTextField(
             model = Article,
@@ -134,12 +131,10 @@ class TestSubclassing(DatabaseTestCase):
             )
 
         article.text = field.clean('some text')
-        self.assert_equals(1, MyListenerPostSave.created)
-        self.assert_equals(0, MyListenerPostSave.called)
+        self.assert_equals(0, wrapped_post_save_listener.called)
 
         article.save()
-        self.assert_equals(1, MyListenerPostSave.created)
-        self.assert_equals(1, MyListenerPostSave.called)
+        self.assert_equals(1, wrapped_post_save_listener.called)
 
 
     def test_custom_validate_rendered_called_during_clean(self):
