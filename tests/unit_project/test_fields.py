@@ -72,6 +72,20 @@ class TestRichTextFieldCleaning(DatabaseTestCase):
     def test_render_retrieved(self):
         self.assert_equals(u"<p>%s</p>" % self.text, self.field.clean(value=self.text).strip())
 
+    def test_sources_stored_for_model_with_two_fields(self):
+        field = RichTextField(
+            model = Article,
+            field_name = "text",
+        )
+
+        field2 = RichTextField(
+            model = Article,
+            field_name = "title",
+        )
+        Article.objects.create(text=field.clean(value=self.text), title=field2.clean(value=self.text+self.text))
+        self.assert_equals(2, SourceText.objects.count())
+        self.assert_equals([self.text, self.text+self.text], [st.content for st in SourceText.objects.order_by('field')])
+
     def test_source_stored_for_fresh_model(self):
         self.field = RichTextField(
             instance = None,
