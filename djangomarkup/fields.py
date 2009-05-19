@@ -18,7 +18,12 @@ SRC_TEXT_ATTR = '__src_text'
 log = logging.getLogger('djangomarkup')
 
 class UnicodeWrapper(unicode):
-    pass
+    def __conform__(self, x):
+        # hack to enable psycopg2's adapting to work
+        # on something that is not a unicode
+        from psycopg2.extensions import adapt
+        return adapt(unicode(self))
+
 
 def post_save_listener(sender, instance, src_text_attr=SRC_TEXT_ATTR, **kwargs):
     src_texts = []
