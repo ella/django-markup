@@ -16,10 +16,6 @@ setup(
         exclude = ('docs', 'tests')
     ),
 
-    entry_points = {
-        'setuptools.file_finders': ['dummy = setuptools_entry:dummylsfiles'],
-    },
-
     include_package_data = True,
 
 )
