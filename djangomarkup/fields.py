@@ -2,7 +2,7 @@ import logging
 
 from django.forms import fields
 from django.forms.util import ValidationError
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_unicode, smart_str
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.db.models import signals
@@ -18,7 +18,8 @@ SRC_TEXT_ATTR = '__src_text'
 log = logging.getLogger('djangomarkup')
 
 class UnicodeWrapper(unicode):
-    pass
+    def __str__(self):
+        return smart_str(self)
 
 if settings.DATABASE_ENGINE == 'postgresql_psycopg2':
     def __conform__(self, x):
