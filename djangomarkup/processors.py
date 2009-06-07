@@ -8,9 +8,24 @@ def markdown(src, **kwargs):
     try:
         from markdown2 import markdown as m
     except ImportError:
-        from markdown import markdown as m
+        try:
+            from markdown import markdown as m
+        except ImportError:
+            raise ProcessorConfigurationError(u"markdown nor markdown2 found")
 
     return m(src) #, html4tags, tab_width, safe_mode, extras, link_patterns, use_file_vars)
 
 def czechtile(src, **kwargs):
-    pass
+    try:
+        from czechtile import (
+            parse, register_map,
+            expand, expander_map
+        )
+    except ImportError:
+        raise ProcessorConfigurationError(u"czechtile not found")
+    tree = parse(src, register_map)
+    tree.wrap_document = False
+    try:
+        return expand(tree, 'xhtml11', expander_map)
+    except Exception, err:
+        raise ProcessorError(err)

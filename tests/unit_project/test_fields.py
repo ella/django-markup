@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.db.models import signals
 from django.forms import ValidationError
 
 from djangosanetesting.cases import UnitTestCase, DatabaseTestCase
@@ -43,6 +42,34 @@ class TestRichTextFieldModifications(UnitTestCase):
         )
 
         self.assert_raises(ValueError, field.get_source)
+
+class TestCzechtileFieldCleaning(DatabaseTestCase):
+    def setUp(self):
+        try:
+            import czechtile
+        except ImportError:
+            raise SkipTest("Czechtile not installed, skipping")
+        super(TestCzechtileFieldCleaning, self).setUp()
+
+        self.text = u"""= Test =
+of ""Czechtile"" text.
+"""
+        self.text_czechtile = u"<h1>Test</h1><p>of <em>Czechtile</em> text.</p>"
+        
+        self.article = Article.objects.create(text=u"")
+        self.field = RichTextField(
+            instance = self.article,
+            model = Article,
+            syntax_processor_name = "czechtile",
+            field_name = "text",
+            required = True,
+            label = "Text"
+        )
+
+    def test_render_retrieved(self):
+
+        self.assert_equals(self.text_czechtile,
+            self.field.clean(value=self.text).strip())
 
 class TestRichTextFieldCleaning(DatabaseTestCase):
     def setUp(self):
