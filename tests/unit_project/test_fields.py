@@ -48,7 +48,7 @@ class TestCzechtileFieldCleaning(DatabaseTestCase):
         try:
             import czechtile
         except ImportError:
-            raise SkipTest("Czechtile not installed, skipping")
+            raise self.SkipTest("Czechtile not installed, skipping")
         super(TestCzechtileFieldCleaning, self).setUp()
 
         self.text = u"""= Test =
