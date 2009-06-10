@@ -73,6 +73,10 @@ class SourceTextManager(models.Manager):
             object_id=pk,
         ).delete()
 
+    def extract_from_model(self, model, fields):
+        pass
+
+
 class SourceText(models.Model):
     """
     Source text is plain text with processor-specific formatting inputted by user.

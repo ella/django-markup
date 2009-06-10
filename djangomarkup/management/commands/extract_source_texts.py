@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import get_model
 from django.db.models.fields import FieldDoesNotExist
 
-from djangomarkup.models import TextProcessor
+from djangomarkup.models import TextProcessor, SourceText
 
 
 def get_fields_to_extract(fields):
@@ -53,5 +53,7 @@ class Command(BaseCommand):
         if to_extract is None:
             return
 
-        print to_extract
+        for model_name, fields in to_extract.items():
+            model = get_model(*model_name.split('.', 1))
+            SourceText.objects.extract_from_model(model, fields)
 
