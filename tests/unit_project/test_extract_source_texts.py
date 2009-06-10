@@ -1,4 +1,4 @@
-from djangomarkup.management.commands.extract_source_texts import get_fields_to_extract
+from djangomarkup.management.commands.extract_source_texts import get_fields_to_extract, Command
 
 from djangosanetesting.cases import UnitTestCase
 
@@ -29,4 +29,24 @@ class TestArgsParsing(UnitTestCase):
                 {'contenttypes.contenttype': ['name', 'app_label']},
                 get_fields_to_extract(['contenttypes.contenttype:name', 'contenttypes.contenttype:app_label'])
             )
+
+
+class TestCommand(UnitTestCase):
+    def setUp(self):
+        self.command = Command()
+
+    def test_fails_for_no_input(self):
+        self.assert_equals(None, self.command.handle())
+
+    def test_fails_for_incorrect_processor(self):
+        self.assert_equals(None, self.command.handle('not-a-processor'))
+
+    def test_fails_for_incorrect_fields(self):
+        self.assert_equals(None, self.command.handle('markdown', 'not_a.model:field'))
+
+    def test_works_for_no_fields(self):
+        self.assert_equals(0, self.command.handle('markdown'))
+
+    def test_works_with_correct_params(self):
+        self.assert_equals(0, self.command.handle('markdown', 'contenttypes.contenttype:app_label'))
 

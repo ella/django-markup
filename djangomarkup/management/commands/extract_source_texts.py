@@ -41,7 +41,9 @@ class Command(BaseCommand):
         if not args:
             print self.args
             return
+
         markup, fields = args[0], args[1:]
+
         try:
             procesor = TextProcessor.objects.get(name=markup)
         except TextProcessor.DoesNotExist, e:
@@ -57,3 +59,4 @@ class Command(BaseCommand):
             model = get_model(*model_name.split('.', 1))
             SourceText.objects.extract_from_model(model, fields)
 
+        return 0
