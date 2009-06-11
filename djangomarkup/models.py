@@ -73,8 +73,29 @@ class SourceTextManager(models.Manager):
             object_id=pk,
         ).delete()
 
-    def extract_from_model(self, model, fields):
-        pass
+    def extract_from_model(self, model, processor, fields):
+        if not fields:
+            return
+
+        ct = ContentType.objects.get_for_model(model)
+
+        for m in model._default_manager.all():
+            dirty = False
+            for f in fields:
+                st, created = self.get_or_create(
+                            content_type=ct,
+                            object_id=m.pk,
+                            field=f,
+                            defaults={
+                                'processor': processor,
+                                'content': getattr(m, f),
+                            }
+                        )
+                if created:
+                    setattr(m, f, st.render())
+                    dirty = True
+            if dirty:
+                m.save(force_update=True)
 
 
 class SourceText(models.Model):

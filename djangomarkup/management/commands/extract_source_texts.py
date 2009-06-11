@@ -57,6 +57,6 @@ class Command(BaseCommand):
 
         for model_name, fields in to_extract.items():
             model = get_model(*model_name.split('.', 1))
-            SourceText.objects.extract_from_model(model, fields)
+            SourceText.objects.extract_from_model(model, procesor, fields)
 
         return 0
