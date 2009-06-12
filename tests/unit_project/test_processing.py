@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from djangosanetesting.cases import UnitTestCase
 from djangomarkup.models import TextProcessor
 from djangomarkup.processors import ProcessorConfigurationError, ProcessorError
