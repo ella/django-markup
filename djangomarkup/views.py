@@ -2,18 +2,21 @@ import logging
 
 from django import template
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.utils.translation import ugettext
 
 from djangomarkup.models import TextProcessor
 
 log = logging.getLogger('djangomarkup')
 
-def preview(request, var_name="text", syntax_processor_name=None):
+def transform(request, syntax_processor_name=None, var_name="text"):
     """
     Returns rendered HTML for source text
     """
-    source = request.REQUEST.get(var_name)
+    if request.method != 'POST':
+        return HttpResponseNotAllowed("Only POST allowed")
+    
+    source = request.POST.get(var_name)
     if not source:
         return HttpResponse('')
 
@@ -28,3 +31,6 @@ def preview(request, var_name="text", syntax_processor_name=None):
         output = '<h3 style="color:red">%s</h3><p>%s</p>' % (ugettext('You have an errors in source text!'), e)
 
     return HttpResponse(output)
+
+# backward compatibility
+preview = transform
