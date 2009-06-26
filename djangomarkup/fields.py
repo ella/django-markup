@@ -6,6 +6,7 @@ from django.utils.encoding import smart_unicode, smart_str
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.db.models import signals
+from django.core import signals as core_signals
 
 from django.contrib.contenttypes.models import ContentType
 from djangomarkup.models import SourceText, TextProcessor
@@ -58,6 +59,8 @@ class RichTextField(fields.Field):
         'link_error':  _('Some links are broken: %s.'),
     }
 
+    __inst_counter = 0
+
     def __init__(self, model, field_name, instance=None, syntax_processor_name=None, **kwargs):
         # TODO: inform widget about selected processor (JS editor..)
 
@@ -73,13 +76,34 @@ class RichTextField(fields.Field):
         super(RichTextField, self).__init__(**kwargs)
         self.widget._field = self
 
+    def get_instance_id(self, instance):
+        " Returns instance pk even if multiple instances were passed to RichTextField. "
+        if type(instance) in [list, tuple]:
+            core_signals.request_finished.connect(receiver=RichTextField.reset_instance_counter_listener)
+            if RichTextField.__inst_counter >= len(instance):
+                return None
+            else:
+                obj_id = self.instance[ RichTextField.__inst_counter ].pk
+            RichTextField.__inst_counter += 1
+        else:
+            obj_id = instance.pk
+        return obj_id
+
+    @staticmethod
+    def reset_instance_counter_listener(*args, **kwargs):
+        core_signals.request_finished.disconnect(receiver=RichTextField.reset_instance_counter_listener)
+        RichTextField.__inst_counter = 0
+
     def get_source(self):
         try:
             if self.instance is None:
                 raise ValueError("Trying to retrieve source, but no object is available")
-            src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
+            obj_id = self.get_instance_id(self.instance)
+            if not obj_id:
+                return SourceText(processor=self.processor)
+            src_text = SourceText.objects.get(content_type=self.ct, object_id=obj_id, field=self.field_name)
         except SourceText.DoesNotExist:
-            log.warning('SourceText.DoesNotExist for ct=%s obj_id=%s field=%s' % (self.ct.pk, self.instance.pk, self.field_name))
+            log.warning('SourceText.DoesNotExist for ct=%s obj_id=%s field=%s' % (self.ct.pk, obj_id, self.field_name))
             #raise NotFoundError(u'No SourceText defined for object [%s] , field [%s] ' % ( self.instance.__unicode__(), self.field_name))
             src_text = SourceText(processor=self.processor)
 
@@ -104,13 +128,16 @@ class RichTextField(fields.Field):
         """
         super_value = super(RichTextField, self).clean(value)
         text = smart_unicode(value)
-
         if self.instance:
+            obj_id = self.get_instance_id(self.instance)
             try:
-                src_text = SourceText.objects.get(content_type=self.ct, object_id=self.instance.pk, field=self.field_name)
+                if not obj_id:
+                    src_text = SourceText(content_type=self.ct, object_id=obj_id, field=self.field_name, processor=self.processor)
+                else:
+                    src_text = SourceText.objects.get(content_type=self.ct, object_id=obj_id, field=self.field_name)
                 assert src_text.processor == self.processor
             except SourceText.DoesNotExist:
-                src_text = SourceText(content_type=self.ct, object_id=self.instance.pk, field=self.field_name, processor=self.processor)
+                src_text = SourceText(content_type=self.ct, object_id=obj_id, field=self.field_name, processor=self.processor)
             src_text.content = text
             try:
                 rendered = src_text.render()
