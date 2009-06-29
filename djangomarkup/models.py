@@ -73,7 +73,7 @@ class SourceTextManager(models.Manager):
             object_id=pk,
         ).delete()
 
-    def extract_from_instance(self, instance, processor, fields, content_type=None):
+    def extract_from_instance(self, instance, processor, fields, content_type=None, force_save=False):
         if not content_type:
             content_type = ContentType.objects.get_for_model(instance)
 
@@ -91,7 +91,7 @@ class SourceTextManager(models.Manager):
             if created:
                 setattr(instance, f, st.render())
                 dirty = True
-        if dirty:
+        if dirty or force_save:
             instance.save(force_update=True)
 
     def extract_from_model(self, model, processor, fields):
