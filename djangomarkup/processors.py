@@ -13,7 +13,7 @@ def markdown(src, **kwargs):
         except ImportError:
             raise ProcessorConfigurationError(u"markdown nor markdown2 found")
 
-    return m(src) #, html4tags, tab_width, safe_mode, extras, link_patterns, use_file_vars)
+    return m(src, extras=["code-friendly"]) #, html4tags, tab_width, safe_mode, extras, link_patterns, use_file_vars)
 
 def czechtile(src, **kwargs):
     try:
