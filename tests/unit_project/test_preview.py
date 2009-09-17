@@ -20,6 +20,10 @@ class TestPreview(DatabaseTestCase):
         self.assert_equals(u"<p>%s</p>" % self.mock_text, self.client.post(reverse("markup-transform"), {'text' : self.mock_text}).content.strip().decode('utf-8'))
 
     def test_success_czechtile(self):
+        try:
+            import czechtile
+        except ImportError:
+            raise self.SkipTest("Czechtile not installed, skipping")
         self.assert_equals(self.czechtile_text_transformed,
             self.client.post(reverse("markup-transform", kwargs={'syntax_processor_name' : "czechtile"}),
             {'text' : self.czechtile_text}).content.decode('utf-8')
