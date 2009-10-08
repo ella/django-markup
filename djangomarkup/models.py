@@ -79,13 +79,16 @@ class SourceTextManager(models.Manager):
 
         dirty = False
         for f in fields:
+            val = getattr(instance, f)
+            if not val:
+                continue
             st, created = self.get_or_create(
                         content_type=content_type,
                         object_id=instance.pk,
                         field=f,
                         defaults={
                             'processor': processor,
-                            'content': getattr(instance, f),
+                            'content': val,
                         }
                     )
             if created:
