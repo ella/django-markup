@@ -103,7 +103,7 @@ class SourceTextManager(models.Manager):
 
         ct = ContentType.objects.get_for_model(model)
 
-        for m in model._default_manager.all():
+        for m in model._default_manager.all().iterator():
             self.extract_from_instance(m, processor, fields, ct)
 
 
