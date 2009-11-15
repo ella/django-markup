@@ -29,3 +29,13 @@ def czechtile(src, **kwargs):
         return expand(tree, 'xhtml11', expander_map)
     except Exception, err:
         raise ProcessorError(err)
+
+def rest(src, **kwargs):
+    try:
+        from docutils.core import publish_parts
+    except ImportError:
+        raise ProcessorConfigurationError(u"docutils not found")
+
+    parts = publish_parts(src, writer_name='html', **kwargs)
+    return parts['fragment']
+
