@@ -73,7 +73,7 @@ class SourceTextManager(models.Manager):
             object_id=pk,
         ).delete()
 
-    def extract_from_instance(self, instance, processor, fields, content_type=None, force_save=False):
+    def extract_from_instance(self, instance, processor, fields, content_type=None, force_save=False, force_create=False):
         if not content_type:
             content_type = ContentType.objects.get_for_model(instance)
 
@@ -82,20 +82,34 @@ class SourceTextManager(models.Manager):
             val = getattr(instance, f)
             if not val:
                 continue
-            st, created = self.get_or_create(
-                        content_type=content_type,
-                        object_id=instance.pk,
-                        field=f,
-                        defaults={
-                            'processor': processor,
-                            'content': val,
-                        }
+
+            if force_create:
+                created = True
+                st = self.create(
+                            content_type=content_type,
+                            object_id=instance.pk,
+                            field=f,
+                            processor=processor,
+                            content=val,
                     )
+            else:
+                st, created = self.get_or_create(
+                            content_type=content_type,
+                            object_id=instance.pk,
+                            field=f,
+                            defaults={
+                                'processor': processor,
+                                'content': val,
+                            }
+                        )
             if created:
                 setattr(instance, f, st.render())
                 dirty = True
+
         if dirty or force_save:
-            instance.save(force_update=True)
+            instance.__class__.objects.filter(pk=instance.pk).update(
+                **dict( (f, getattr(instance, f)) for f in fields )
+            )
 
     def extract_from_model(self, model, processor, fields):
         if not fields:
