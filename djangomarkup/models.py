@@ -67,7 +67,7 @@ class SourceTextManager(models.Manager):
             pk = int(instance.pk)
         except ValueError:
             return
-        
+
         self.filter(
             content_type=ContentType.objects.get_for_model(instance),
             object_id=pk,
@@ -147,6 +147,8 @@ class SourceText(models.Model):
         return getattr(self.target, self.field)
 
     def render(self):
+        if not self.content:
+            return ''
         return self.processor.convert(self.content)
 
     class Meta:

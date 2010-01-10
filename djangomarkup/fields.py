@@ -127,6 +127,17 @@ class RichTextField(fields.Field):
         @raise ValidationError when something went wrong with transformation.
         """
         super_value = super(RichTextField, self).clean(value)
+
+        if super_value in fields.EMPTY_VALUES:
+            if self.instance:
+                obj_id = self.get_instance_id(self.instance)
+                if not obj_id:
+                    SourceText.objects.filter(content_type=self.ct, object_id=obj_id, field=self.field_name, processor=self.processor).delete()
+                else:
+                    SourceText.objects.filter(content_type=self.ct, object_id=obj_id, field=self.field_name).delete()
+            self.validate_rendered('')
+            return ''
+
         text = smart_unicode(value)
         if self.instance:
             obj_id = self.get_instance_id(self.instance)

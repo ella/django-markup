@@ -61,3 +61,4 @@ MEDIA_URL = '/static/'
 
 ADMIN_MEDIA_PREFIX = '/static/admin_media/'
 
+SELENIUM_BROWSER_COMMAND = "*firefox /usr/lib64/firefox/firefox"
