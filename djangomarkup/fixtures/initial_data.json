@@ -18,7 +18,7 @@
     }
   },
   {
-    "pk": 2,
+    "pk": 3,
     "model": "djangomarkup.textprocessor",
     "fields": {
       "function": "djangomarkup.processors.rest",
