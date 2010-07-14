@@ -1,0 +1,6 @@
+
+Django
+markdown2
+
+nose
+djangosanetesting
