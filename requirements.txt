@@ -4,3 +4,5 @@ markdown2
 
 nose
 djangosanetesting
+git+http://github.com/ella/citools.git#egg=citools
+
