@@ -22,13 +22,11 @@ class UnicodeWrapper(unicode):
     def __str__(self):
         return smart_str(self)
 
-if settings.DATABASE_ENGINE == 'postgresql_psycopg2':
     def __conform__(self, x):
         # hack to enable psycopg2's adapting to work
         # on something that is not a unicode
         from psycopg2.extensions import adapt
         return adapt(unicode(self))
-    UnicodeWrapper.__conform__ = __conform__
 
 
 def post_save_listener(sender, instance, src_text_attr=SRC_TEXT_ATTR, **kwargs):
