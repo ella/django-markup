@@ -52,7 +52,7 @@ class TextProcessor(models.Model):
     def convert(self, src_txt):
         function = self.get_function()
         try:
-            return function(src_txt)
+            return unicode(function(src_txt))
         except Exception, err:
             raise ProcessorError(err)
 
