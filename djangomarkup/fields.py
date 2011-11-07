@@ -11,7 +11,7 @@ from django.core import signals as core_signals
 from django.contrib.contenttypes.models import ContentType
 from djangomarkup.models import SourceText, TextProcessor
 from djangomarkup.widgets import RichTextAreaWidget
-from djangomarkup.processors import ProcessorConfigurationError, ProcessorError
+from djangomarkup.processors import ProcessorError
 
 RICH_FIELDS_SET = '__rich_fields_list'
 SRC_TEXT_ATTR = '__src_text'
@@ -23,11 +23,17 @@ class UnicodeWrapper(unicode):
         return smart_str(self)
 
     def __conform__(self, x):
-        # hack to enable psycopg2's adapting to work
-        # on something that is not a unicode
-        from psycopg2.extensions import adapt
-        return adapt(unicode(self))
+            try:
+                engine = settings.DATABASES['default']['ENGINE'].split('.')[-1]
+            except (KeyError, AttributeError):
+                engine = getattr(settings, 'DATABASE_ENGINE', '').split('.')[-1]
 
+            if engine.startswith('postgresql'):
+                # hack to enable psycopg2's adapting to work
+                # on something that is not a unicode
+                from psycopg2.extensions import adapt
+                return adapt(unicode(self))
+            return unicode(self)
 
 def post_save_listener(sender, instance, src_text_attr=SRC_TEXT_ATTR, **kwargs):
     src_texts = []
