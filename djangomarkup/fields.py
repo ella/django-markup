@@ -23,10 +23,8 @@ class UnicodeWrapper(unicode):
         return smart_str(self)
 
     def __conform__(self, x):
-            try:
-                engine = settings.DATABASES['default']['ENGINE'].split('.')[-1]
-            except (KeyError, AttributeError):
-                engine = getattr(settings, 'DATABASE_ENGINE', '').split('.')[-1]
+            from django import db
+            engine = getattr(db.settings, 'DATABASE_ENGINE', None)
 
             if engine.startswith('postgresql'):
                 # hack to enable psycopg2's adapting to work
