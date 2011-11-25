@@ -23,10 +23,19 @@ class UnicodeWrapper(unicode):
         return smart_str(self)
 
     def __conform__(self, x):
-            from django import db
-            engine = getattr(db.settings, 'DATABASE_ENGINE', None)
+            from django import VERSION
 
-            if engine.startswith('postgresql'):
+            if VERSION >= (1,3):
+                # do not try new settings format for older django versions which
+                # still ignores it
+                try:
+                    engine = settings.DATABASES['default']['ENGINE'].split('.')[-1]
+                except (KeyError, AttributeError):
+                    engine = getattr(settings, 'DATABASE_ENGINE', '').split('.')[-1]
+            else:
+                engine = getattr(settings, 'DATABASE_ENGINE', '').split('.')[-1]
+
+            if 'postgresql' in engine:
                 # hack to enable psycopg2's adapting to work
                 # on something that is not a unicode
                 from psycopg2.extensions import adapt
