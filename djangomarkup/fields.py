@@ -25,7 +25,7 @@ class UnicodeWrapper(unicode):
     def __conform__(self, x):
             from django import VERSION
 
-            if VERSION >= (1,3):
+            if VERSION >= (1,2):
                 # do not try new settings format for older django versions which
                 # still ignores it
                 try:
