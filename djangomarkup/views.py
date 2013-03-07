@@ -15,7 +15,7 @@ def transform(request, syntax_processor_name=None, var_name="text"):
     """
     if request.method != 'POST':
         return HttpResponseNotAllowed("Only POST allowed")
-    
+
     source = request.POST.get(var_name)
     if not source:
         return HttpResponse('')
@@ -27,7 +27,7 @@ def transform(request, syntax_processor_name=None, var_name="text"):
         t = template.Template(output, name='markup_preview')
         output = t.render(template.Context({'MEDIA_URL' : settings.MEDIA_URL}))
     except template.TemplateSyntaxError, e:
-        log.error('Error in preview rendering: %s' % e)
+        log.warning('Error in preview rendering: %s' % e)
         output = '<h3 style="color:red">%s</h3><p>%s</p>' % (ugettext('You have an errors in source text!'), e)
 
     return HttpResponse(output)
